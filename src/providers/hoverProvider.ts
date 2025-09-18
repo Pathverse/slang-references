@@ -1,4 +1,4 @@
-import type { CancellationToken, HoverProvider, Position, ProviderResult, TextDocument } from 'vscode'
+import type { CancellationToken, HoverProvider, Position, TextDocument } from 'vscode'
 import { Hover, languages, MarkdownString, Range } from 'vscode'
 import { SlangDetector } from '../detectors/slangDetector'
 import { CommentResolver } from '../resolvers/commentResolver'
@@ -52,7 +52,7 @@ export class SlangHoverProvider implements HoverProvider {
       const markdown = new MarkdownString()
       markdown.isTrusted = true
       markdown.appendCodeblock(translationString, 'text')
-      
+
       // Add metadata if enabled in settings
       const config = await import('vscode').then(vscode => vscode.workspace.getConfiguration('slangReferences'))
       if (config.get('showDetailedInfo', false)) {
@@ -72,7 +72,7 @@ export class SlangHoverProvider implements HoverProvider {
 
 export function registerSlangHoverProvider(): void {
   const provider = new SlangHoverProvider()
-  
+
   // Register for Dart files
   languages.registerHoverProvider(
     { scheme: 'file', language: 'dart' },

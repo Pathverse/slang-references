@@ -1,6 +1,6 @@
-import { Uri, workspace, window } from 'vscode'
-import * as path from 'path'
+import * as path from 'node:path'
 import * as yaml from 'js-yaml'
+import { Uri, window, workspace } from 'vscode'
 import { ConfigResolver } from '../resolvers/configResolver'
 
 export interface TranslationEntry {
@@ -32,9 +32,9 @@ export class TranslationFileWriter {
     documentUri: Uri,
   ): Promise<WriteResult> {
     try {
-      console.log('[Translation File Writer] Adding translation:', entry)
-      console.log('[Translation File Writer] Document URI:', documentUri.toString())
-      
+      // console.log('[Translation File Writer] Adding translation:', entry)
+      // console.log('[Translation File Writer] Document URI:', documentUri.toString())
+
       // Find the target translation file
       const translationFile = await this.findTranslationFile(documentUri)
       if (!translationFile) {
@@ -45,12 +45,12 @@ export class TranslationFileWriter {
         }
       }
 
-      console.log('[Translation File Writer] Found translation file:', translationFile.fsPath)
+      // console.log('[Translation File Writer] Found translation file:', translationFile.fsPath)
 
       // Read existing translations
       const existingTranslations = await this.readTranslationFile(translationFile)
-      console.log('[Translation File Writer] Existing translations:', existingTranslations)
-      
+      // console.log('[Translation File Writer] Existing translations:', existingTranslations)
+
       // Check for key conflicts
       if (this.hasKeyConflict(entry.key, existingTranslations)) {
         console.warn('[Translation File Writer] Key conflict detected:', entry.key)
@@ -62,11 +62,11 @@ export class TranslationFileWriter {
 
       // Add the new translation
       const updatedTranslations = this.addTranslationToObject(entry, existingTranslations)
-      console.log('[Translation File Writer] Updated translations:', updatedTranslations)
+      // console.log('[Translation File Writer] Updated translations:', updatedTranslations)
 
       // Write back to file
       await this.writeTranslationFile(translationFile, updatedTranslations)
-      console.log('[Translation File Writer] Successfully wrote to file')
+      // console.log('[Translation File Writer] Successfully wrote to file')
 
       return {
         success: true,
@@ -91,11 +91,11 @@ export class TranslationFileWriter {
     documentUri: Uri,
   ): Promise<WriteResult[]> {
     const results: WriteResult[] = []
-    
+
     for (const entry of entries) {
       const result = await this.addTranslation(entry, documentUri)
       results.push(result)
-      
+
       // Stop on first error to avoid partial updates
       if (!result.success) {
         break
@@ -182,11 +182,11 @@ export class TranslationFileWriter {
   private async writeTranslationFile(fileUri: Uri, translations: any): Promise<void> {
     const content = JSON.stringify(translations, null, 2)
     const buffer = Buffer.from(content, 'utf8')
-    
+
     // Ensure directory exists
     const dir = path.dirname(fileUri.fsPath)
     await workspace.fs.createDirectory(Uri.file(dir))
-    
+
     await workspace.fs.writeFile(fileUri, buffer)
   }
 
@@ -218,10 +218,11 @@ export class TranslationFileWriter {
       }
 
       current[keyParts[keyParts.length - 1]] = entry.value
-    } else {
+    }
+    else {
       // Handle nested keys with dots
-      const keyParts = entry.key.includes('.') 
-        ? entry.key.split('.') 
+      const keyParts = entry.key.includes('.')
+        ? entry.key.split('.')
         : [entry.key]
 
       if (keyParts.length > 1) {
@@ -237,7 +238,8 @@ export class TranslationFileWriter {
         }
 
         current[keyParts[keyParts.length - 1]] = entry.value
-      } else {
+      }
+      else {
         // Simple flat key
         result[entry.key] = entry.value
       }
@@ -257,7 +259,8 @@ export class TranslationFileWriter {
 
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         keys.push(...this.flattenKeys(value, fullKey))
-      } else {
+      }
+      else {
         keys.push(fullKey)
       }
     }
@@ -281,7 +284,7 @@ export class TranslationFileWriter {
       const configPath = configFile.fsPath
       const commonLength = this.getCommonPathLength(documentPath, configPath)
       const distance = Math.abs(documentPath.length - commonLength)
-      
+
       if (distance < shortestDistance) {
         shortestDistance = distance
         bestMatch = configFile
@@ -298,15 +301,15 @@ export class TranslationFileWriter {
     try {
       const content = await workspace.fs.readFile(configFile)
       const text = Buffer.from(content).toString('utf8')
-      
-      console.log('[Translation File Writer] Parsing config file:', configFile.fsPath)
-      console.log('[Translation File Writer] Config content:', text)
-      
+
+      // console.log('[Translation File Writer] Parsing config file:', configFile.fsPath)
+      // console.log('[Translation File Writer] Config content:', text)
+
       // Use proper YAML parsing
       const config = yaml.load(text) as any
-      
-      console.log('[Translation File Writer] Parsed config:', config)
-      
+
+      // console.log('[Translation File Writer] Parsed config:', config)
+
       return config
     }
     catch (error) {
@@ -326,7 +329,8 @@ export class TranslationFileWriter {
     for (let i = 0; i < Math.min(parts1.length, parts2.length); i++) {
       if (parts1[i] === parts2[i]) {
         commonLength += parts1[i].length + 1
-      } else {
+      }
+      else {
         break
       }
     }

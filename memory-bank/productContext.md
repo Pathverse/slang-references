@@ -21,7 +21,7 @@ Provide immediate access to default language strings through hover tooltips, kee
 
 ### User Journey
 ```
-Developer hovers over `t.contactAndFeedback` 
+Developer hovers over `t.contactAndFeedback`
     ↓
 Extension detects Slang Translations variable
     ↓

@@ -12,13 +12,13 @@ export class SlangDetector {
    * Detects if the position is over a Slang translation variable
    */
   async detectSlangVariable(
-    document: TextDocument, 
+    document: TextDocument,
     position: Position,
   ): Promise<SlangVariableDetection | null> {
     try {
       const line = document.lineAt(position)
       const text = line.text
-      
+
       // Get the word at the cursor position
       const wordRange = document.getWordRangeAtPosition(position)
       if (!wordRange) {
@@ -26,22 +26,22 @@ export class SlangDetector {
       }
 
       const word = document.getText(wordRange)
-      
+
       // Check if this looks like a translation variable access
       // Pattern: t.variableName or translations.variableName
-      const translationAccessPattern = /(\w+)\.([\w\d_]+)/g
+      const translationAccessPattern = /(\w+)\.(\w+)/g
       let match
-      
+
       while ((match = translationAccessPattern.exec(text)) !== null) {
         const [fullMatch, objectName, variableName] = match
         const matchStart = match.index!
         const matchEnd = matchStart + fullMatch.length
-        
+
         // Check if cursor is within this match
         const positionIndex = document.offsetAt(position)
         const lineStartOffset = document.offsetAt(line.range.start)
         const relativePosition = positionIndex - lineStartOffset
-        
+
         if (relativePosition >= matchStart && relativePosition <= matchEnd) {
           // Check if the object is likely a Translations instance
           if (await this.isTranslationsVariable(objectName, document)) {
@@ -78,7 +78,7 @@ export class SlangDetector {
 
       // Look for Translations type declaration in the document
       const text = document.getText()
-      
+
       // Pattern to match variable declarations with Translations type
       const declarationPatterns = [
         new RegExp(`\\b${variableName}\\s*=\\s*Translations\\.of`, 'i'),

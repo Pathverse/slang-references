@@ -1,6 +1,6 @@
-import { Uri, workspace } from 'vscode'
+import * as path from 'node:path'
 import * as yaml from 'js-yaml'
-import * as path from 'path'
+import { Uri, workspace } from 'vscode'
 
 interface SlangConfig {
   base_locale: string
@@ -47,7 +47,7 @@ export class ConfigResolver {
     try {
       // Look for slang configuration files
       const configFiles = await workspace.findFiles('**/slang.{yml,yaml}', '**/node_modules/**')
-      
+
       if (configFiles.length === 0) {
         return null
       }
@@ -98,7 +98,7 @@ export class ConfigResolver {
       const inputDir = path.join(configDir, config.input_directory)
       const translationFileName = `${config.base_locale}${config.input_file_pattern}`
       const translationFilePath = path.join(inputDir, translationFileName)
-      
+
       // Convert to VS Code URI
       const translationUri = Uri.file(translationFilePath)
       const cacheKey = translationUri.toString()
@@ -117,7 +117,7 @@ export class ConfigResolver {
         // Flatten nested translations and cache
         const flatTranslations = this.flattenTranslations(translations)
         this.translationCache.set(cacheKey, flatTranslations)
-        
+
         return flatTranslations
       }
       catch (fileError) {
@@ -147,7 +147,7 @@ export class ConfigResolver {
       const configPath = configFile.fsPath
       const commonLength = this.getCommonPathLength(documentPath, configPath)
       const distance = Math.abs(documentPath.length - commonLength)
-      
+
       if (distance < shortestDistance) {
         shortestDistance = distance
         bestMatch = configFile
@@ -191,7 +191,8 @@ export class ConfigResolver {
         for (const [nestedKey, nestedValue] of nested) {
           flattened.set(nestedKey, nestedValue)
         }
-      } else {
+      }
+      else {
         // Store primitive values and arrays
         flattened.set(newKey, value)
       }
@@ -259,7 +260,8 @@ export class ConfigResolver {
     for (let i = 0; i < Math.min(parts1.length, parts2.length); i++) {
       if (parts1[i] === parts2[i]) {
         commonLength += parts1[i].length + 1
-      } else {
+      }
+      else {
         break
       }
     }

@@ -1,4 +1,5 @@
-import { Position, Range, TextDocument } from 'vscode'
+import type { TextDocument } from 'vscode'
+import { Position, Range } from 'vscode'
 
 export interface StringLiteralDetection {
   value: string
@@ -18,27 +19,27 @@ export class StringLiteralDetector {
     position: Position,
   ): Promise<StringLiteralDetection | null> {
     try {
-      console.log('[String Literal Detector] Checking position:', position.line, position.character)
+      // console.log('[String Literal Detector] Checking position:', position.line, position.character)
       const line = document.lineAt(position)
       const text = line.text
-      console.log('[String Literal Detector] Line text:', text)
-      
+      // console.log('[String Literal Detector] Line text:', text)
+
       // Get the word/token at the cursor position - use a broader regex to catch strings
       const wordRange = document.getWordRangeAtPosition(position, /["'`][^"'`]*["'`]/g)
-      console.log('[String Literal Detector] Word range:', wordRange)
-      
+      // console.log('[String Literal Detector] Word range:', wordRange)
+
       if (!wordRange) {
         // If no word range found, try to find string manually by checking character at position
         const charAtPosition = text[position.character]
-        console.log('[String Literal Detector] Char at position:', charAtPosition)
-        
-        if (charAtPosition === '"' || charAtPosition === "'" || charAtPosition === '`') {
+        // console.log('[String Literal Detector] Char at position:', charAtPosition)
+
+        if (charAtPosition === '"' || charAtPosition === '\'' || charAtPosition === '`') {
           // We're at the start/end of a string, find the full string
           const stringRange = this.findStringRangeAt(document, position)
           if (stringRange) {
             const stringLiteral = document.getText(stringRange)
-            console.log('[String Literal Detector] Found string manually:', stringLiteral)
-            
+            // console.log('[String Literal Detector] Found string manually:', stringLiteral)
+
             if (this.isStringLiteral(stringLiteral)) {
               const value = this.extractStringValue(stringLiteral)
               if (this.shouldBeTranslated(value)) {
@@ -55,17 +56,17 @@ export class StringLiteralDetector {
             }
           }
         }
-        
+
         // Try looking around the cursor position for a string
         for (let offset = -10; offset <= 10; offset++) {
           const checkPos = new Position(position.line, Math.max(0, position.character + offset))
           const charAtCheck = text[checkPos.character]
-          if (charAtCheck === '"' || charAtCheck === "'" || charAtCheck === '`') {
+          if (charAtCheck === '"' || charAtCheck === '\'' || charAtCheck === '`') {
             const stringRange = this.findStringRangeAt(document, checkPos)
             if (stringRange && stringRange.contains(position)) {
               const stringLiteral = document.getText(stringRange)
-              console.log('[String Literal Detector] Found string in vicinity:', stringLiteral)
-              
+              // console.log('[String Literal Detector] Found string in vicinity:', stringLiteral)
+
               if (this.isStringLiteral(stringLiteral)) {
                 const value = this.extractStringValue(stringLiteral)
                 if (this.shouldBeTranslated(value)) {
@@ -83,33 +84,33 @@ export class StringLiteralDetector {
             }
           }
         }
-        
+
         return null
       }
 
       const stringLiteral = document.getText(wordRange)
-      console.log('[String Literal Detector] String literal found:', stringLiteral)
-      
+      // console.log('[String Literal Detector] String literal found:', stringLiteral)
+
       // Check if it's actually a string literal
       if (!this.isStringLiteral(stringLiteral)) {
-        console.log('[String Literal Detector] Not a valid string literal')
+        // console.log('[String Literal Detector] Not a valid string literal')
         return null
       }
 
       // Extract the string value (remove quotes)
       const value = this.extractStringValue(stringLiteral)
-      console.log('[String Literal Detector] Extracted value:', value)
-      
+      // console.log('[String Literal Detector] Extracted value:', value)
+
       // Skip very short strings or strings that look like they shouldn't be translated
       if (!this.shouldBeTranslated(value)) {
-        console.log('[String Literal Detector] Should not be translated')
+        // console.log('[String Literal Detector] Should not be translated')
         return null
       }
 
       // Analyze the context to determine if this is in a method call or constructor
       const context = await this.analyzeContext(document, wordRange, line)
-      console.log('[String Literal Detector] Context analysis:', context)
-      
+      // console.log('[String Literal Detector] Context analysis:', context)
+
       const result = {
         value,
         range: wordRange,
@@ -118,8 +119,8 @@ export class StringLiteralDetector {
         parameterIndex: context.parameterIndex,
         context: context.type,
       }
-      
-      console.log('[String Literal Detector] Final result:', result)
+
+      // console.log('[String Literal Detector] Final result:', result)
       return result
     }
     catch (error) {
@@ -136,25 +137,26 @@ export class StringLiteralDetector {
       const line = document.lineAt(position)
       const text = line.text
       const char = text[position.character]
-      
-      if (char !== '"' && char !== "'" && char !== '`') {
+
+      if (char !== '"' && char !== '\'' && char !== '`') {
         // Look for the start of a string around this position
         let stringStart = -1
         let stringEnd = -1
         let quote = ''
-        
+
         // Search backwards for opening quote
         for (let i = position.character; i >= 0; i--) {
           const c = text[i]
-          if (c === '"' || c === "'" || c === '`') {
+          if (c === '"' || c === '\'' || c === '`') {
             stringStart = i
             quote = c
             break
           }
         }
-        
-        if (stringStart === -1) return null
-        
+
+        if (stringStart === -1)
+          return null
+
         // Search forwards for closing quote
         for (let i = stringStart + 1; i < text.length; i++) {
           const c = text[i]
@@ -163,20 +165,21 @@ export class StringLiteralDetector {
             break
           }
         }
-        
-        if (stringEnd === -1) return null
-        
+
+        if (stringEnd === -1)
+          return null
+
         return new Range(
           new Position(position.line, stringStart),
-          new Position(position.line, stringEnd + 1)
+          new Position(position.line, stringEnd + 1),
         )
       }
-      
+
       // We're at a quote character, find the matching quote
       const quote = char
       let stringStart = position.character
       let stringEnd = -1
-      
+
       // If we're at a closing quote, search backwards for opening quote
       if (position.character > 0) {
         for (let i = position.character - 1; i >= 0; i--) {
@@ -188,7 +191,7 @@ export class StringLiteralDetector {
           }
         }
       }
-      
+
       // If not found, search forward for closing quote
       if (stringEnd === -1) {
         for (let i = position.character + 1; i < text.length; i++) {
@@ -199,12 +202,13 @@ export class StringLiteralDetector {
           }
         }
       }
-      
-      if (stringEnd === -1) return null
-      
+
+      if (stringEnd === -1)
+        return null
+
       return new Range(
         new Position(position.line, stringStart),
-        new Position(position.line, stringEnd + 1)
+        new Position(position.line, stringEnd + 1),
       )
     }
     catch (error) {
@@ -219,9 +223,9 @@ export class StringLiteralDetector {
   private isStringLiteral(text: string): boolean {
     const trimmed = text.trim()
     return (
-      (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-      (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
-      (trimmed.startsWith('`') && trimmed.endsWith('`'))
+      (trimmed.startsWith('"') && trimmed.endsWith('"'))
+      || (trimmed.startsWith('\'') && trimmed.endsWith('\''))
+      || (trimmed.startsWith('`') && trimmed.endsWith('`'))
     )
   }
 
@@ -237,30 +241,30 @@ export class StringLiteralDetector {
    * Determines if a string should be considered for translation
    */
   private shouldBeTranslated(value: string): boolean {
-    console.log('[String Literal Detector] Checking if should be translated:', value)
-    
+    // console.log('[String Literal Detector] Checking if should be translated:', value)
+
     // Skip very short strings
     if (value.length < 2) {
-      console.log('[String Literal Detector] Too short')
+      // console.log('[String Literal Detector] Too short')
       return false
     }
 
     // Skip strings that are likely not user-facing text
     const skipPatterns = [
       /^\d+$/, // Pure numbers
-      /^[a-fA-F0-9]+$/, // Hex values
+      /^[a-f0-9]+$/i, // Hex values
       /^(true|false|null)$/i, // Boolean/null values
       /^(get|post|put|delete|patch)$/i, // HTTP methods
       /^\w+:\/\//, // URLs
-      /^\/[^\/\s]*/, // File paths starting with /
+      /^\/[^/\s]*/, // File paths starting with /
       /^\$\{/, // Template strings with variables
-      /^#[0-9a-fA-F]{3,6}$/, // Color codes
-      /^[+-]?\d*\.?\d+$/, // Numbers with decimals
+      /^#[0-9a-f]{3,6}$/i, // Color codes
+      /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/, // Numbers with decimals
       /^\w+\.\w+/, // Property access patterns
     ]
 
     const shouldTranslate = !skipPatterns.some(pattern => pattern.test(value))
-    console.log('[String Literal Detector] Should translate result:', shouldTranslate)
+    // console.log('[String Literal Detector] Should translate result:', shouldTranslate)
     return shouldTranslate
   }
 
@@ -272,11 +276,11 @@ export class StringLiteralDetector {
     stringRange: Range,
     currentLine: any,
   ): Promise<{
-    isInMethodCall: boolean
-    methodName?: string
-    parameterIndex?: number
-    type: 'parameter' | 'argument' | 'assignment' | 'other'
-  }> {
+      isInMethodCall: boolean
+      methodName?: string
+      parameterIndex?: number
+      type: 'parameter' | 'argument' | 'assignment' | 'other'
+    }> {
     const lineText = currentLine.text
     const stringStart = stringRange.start.character
     const stringEnd = stringRange.end.character
@@ -284,18 +288,18 @@ export class StringLiteralDetector {
     // Look for method call patterns
     const methodCallPattern = /(\w+)\s*\(/g
     let methodMatch
-    
+
     while ((methodMatch = methodCallPattern.exec(lineText)) !== null) {
       const methodName = methodMatch[1]
       const openParenIndex = methodMatch.index! + methodName.length
-      
+
       // Find the matching closing parenthesis
       const closingParenIndex = this.findMatchingParen(lineText, openParenIndex)
-      
+
       if (closingParenIndex !== -1 && stringStart > openParenIndex && stringEnd < closingParenIndex) {
         // String is inside this method call
         const parameterIndex = this.getParameterIndex(lineText, openParenIndex, stringStart)
-        
+
         return {
           isInMethodCall: true,
           methodName,
@@ -308,16 +312,16 @@ export class StringLiteralDetector {
     // Look for constructor calls (CapitalizedName(...))
     const constructorPattern = /\b([A-Z]\w*)\s*\(/g
     let constructorMatch
-    
+
     while ((constructorMatch = constructorPattern.exec(lineText)) !== null) {
       const constructorName = constructorMatch[1]
       const openParenIndex = constructorMatch.index! + constructorName.length
-      
+
       const closingParenIndex = this.findMatchingParen(lineText, openParenIndex)
-      
+
       if (closingParenIndex !== -1 && stringStart > openParenIndex && stringEnd < closingParenIndex) {
         const parameterIndex = this.getParameterIndex(lineText, openParenIndex, stringStart)
-        
+
         return {
           isInMethodCall: true,
           methodName: constructorName,
@@ -330,10 +334,10 @@ export class StringLiteralDetector {
     // Look for assignment patterns
     const assignmentPattern = /(\w+)\s*[:=]\s*/g
     let assignmentMatch
-    
+
     while ((assignmentMatch = assignmentPattern.exec(lineText)) !== null) {
       const assignmentEnd = assignmentMatch.index! + assignmentMatch[0].length
-      
+
       if (stringStart >= assignmentEnd) {
         return {
           isInMethodCall: false,
@@ -358,7 +362,7 @@ export class StringLiteralDetector {
 
     for (let i = openIndex; i < text.length; i++) {
       const char = text[i]
-      
+
       if (inString) {
         if (char === stringChar && text[i - 1] !== '\\') {
           inString = false
@@ -366,7 +370,7 @@ export class StringLiteralDetector {
         continue
       }
 
-      if (char === '"' || char === "'" || char === '`') {
+      if (char === '"' || char === '\'' || char === '`') {
         inString = true
         stringChar = char
         continue
@@ -374,7 +378,8 @@ export class StringLiteralDetector {
 
       if (char === '(') {
         depth++
-      } else if (char === ')') {
+      }
+      else if (char === ')') {
         depth--
         if (depth === 0) {
           return i
@@ -396,7 +401,7 @@ export class StringLiteralDetector {
 
     for (let i = openParenIndex + 1; i < stringPosition && i < text.length; i++) {
       const char = text[i]
-      
+
       if (inString) {
         if (char === stringChar && text[i - 1] !== '\\') {
           inString = false
@@ -404,7 +409,7 @@ export class StringLiteralDetector {
         continue
       }
 
-      if (char === '"' || char === "'" || char === '`') {
+      if (char === '"' || char === '\'' || char === '`') {
         inString = true
         stringChar = char
         continue
@@ -412,9 +417,11 @@ export class StringLiteralDetector {
 
       if (char === '(' || char === '[' || char === '{') {
         depth++
-      } else if (char === ')' || char === ']' || char === '}') {
+      }
+      else if (char === ')' || char === ']' || char === '}') {
         depth--
-      } else if (char === ',' && depth === 0) {
+      }
+      else if (char === ',' && depth === 0) {
         paramIndex++
       }
     }
@@ -438,10 +445,10 @@ export class StringLiteralDetector {
       while ((match = stringLiteralPattern.exec(line)) !== null) {
         const stringStart = match.index!
         const stringEnd = stringStart + match[0].length
-        
+
         const position = new Position(lineIndex, stringStart)
         const detection = await this.detectStringLiteral(document, position)
-        
+
         if (detection) {
           results.push(detection)
         }

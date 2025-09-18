@@ -41,7 +41,7 @@ export class CommentResolver {
     try {
       // Look for strings.g.dart files in the workspace
       const generatedFiles = await workspace.findFiles('**/strings.g.dart', '**/node_modules/**')
-      
+
       if (generatedFiles.length === 0) {
         return null
       }
@@ -61,7 +61,7 @@ export class CommentResolver {
         // Simple heuristic: find common path prefix length
         const commonLength = this.getCommonPathLength(documentPath, filePath)
         const distance = Math.abs(documentPath.length - commonLength) + Math.abs(filePath.length - commonLength)
-        
+
         if (distance < shortestDistance) {
           shortestDistance = distance
           bestMatch = file
@@ -89,17 +89,17 @@ export class CommentResolver {
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim()
-        
+
         // Look for comment pattern: /// en: 'translation text'
         const commentMatch = line.match(/^\/\/\/\s*(\w+):\s*['"`](.+?)['"`]\s*$/)
         if (commentMatch) {
           const [, locale, translationText] = commentMatch
-          
+
           // Look for the next line with the variable declaration
           if (i + 1 < lines.length) {
             const nextLine = lines[i + 1].trim()
             const variableMatch = nextLine.match(/String\s+get\s+(\w+)\s*=>/)
-            
+
             if (variableMatch) {
               const [, variableName] = variableMatch
               // For now, we'll use the first locale found (typically 'en')
@@ -115,7 +115,7 @@ export class CommentResolver {
           const multilineMatch = line.match(/^\/\/\/\s*(\w+):\s*['"`](.+?)['"`]?\s*$/)
           if (multilineMatch) {
             const [, locale, translationText] = multilineMatch
-            
+
             // Look ahead for variable declaration
             for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
               const searchLine = lines[j].trim()
@@ -152,7 +152,8 @@ export class CommentResolver {
     for (let i = 0; i < Math.min(parts1.length, parts2.length); i++) {
       if (parts1[i] === parts2[i]) {
         commonLength += parts1[i].length + 1 // +1 for separator
-      } else {
+      }
+      else {
         break
       }
     }

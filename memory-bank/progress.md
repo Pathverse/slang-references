@@ -42,25 +42,25 @@
 1. **Hover Functionality**: Complete hover provider for Slang translation variables
 2. **String Conversion**: Full string-to-translation conversion with three suggestion modes:
    - Simple rephrased name
-   - File-path-based nested structure  
+   - File-path-based nested structure
    - Custom user input with validation
 
 ### Code Architecture ✅
 ```typescript
-src/
-  index.ts                           // Extension entry point
-  providers/
-    hoverProvider.ts                 // Hover functionality 
-    stringToTranslationProvider.ts   // String conversion feature
-  detectors/
-    slangDetector.ts                 // Translation variable detection
-    stringLiteralDetector.ts         // String literal detection
-  resolvers/
-    commentResolver.ts               // Comment-based resolution
-    configResolver.ts                // Configuration-based resolution  
-  utils/
-    keyGenerator.ts                  // Key generation and validation
-    translationFileWriter.ts         // JSON file writing with nested support
+src
+/ index.ts // Extension entry point
+providers
+/ hoverProvider.ts // Hover functionality
+stringToTranslationProvider.ts // String conversion feature
+detectors
+/ slangDetector.ts // Translation variable detection
+stringLiteralDetector.ts // String literal detection
+resolvers
+/ commentResolver.ts // Comment-based resolution
+configResolver.ts // Configuration-based resolution
+utils
+/ keyGenerator.ts // Key generation and validation
+translationFileWriter.ts // JSON file writing with nested support
 ```
 
 ### Key Technical Achievements ✅

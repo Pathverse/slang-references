@@ -22,7 +22,7 @@ export class KeyGenerator {
    */
   static generateKey(value: string, options: KeyGenerationOptions = {}): string {
     const opts = { ...this.DEFAULT_OPTIONS, ...options }
-    
+
     let key = value
 
     // Step 1: Clean and normalize the string
@@ -81,7 +81,7 @@ export class KeyGenerator {
     try {
       // Extract meaningful path segments from the file path
       const pathSegments = this.extractPathSegments(filePath)
-      
+
       if (pathSegments.length === 0) {
         return this.generateKey(value)
       }
@@ -89,7 +89,7 @@ export class KeyGenerator {
       // Create nested structure: folder1.folder2.keyName
       const keyName = this.generateKey(value, { maxLength: 15 })
       const fullPath = [...pathSegments, keyName].join('.')
-      
+
       return fullPath
     }
     catch (error) {
@@ -106,32 +106,32 @@ export class KeyGenerator {
       // Convert to forward slashes and split
       const normalizedPath = filePath.replace(/\\/g, '/')
       const segments = normalizedPath.split('/')
-      
+
       // Find meaningful segments (skip common ones like lib, src, etc.)
       const skipSegments = new Set(['lib', 'src', 'app', 'main', 'dart', 'flutter', 'packages', 'node_modules'])
       const meaningfulSegments: string[] = []
-      
+
       // Start from the end and work backwards, but limit to 3 levels
       for (let i = segments.length - 1; i >= 0 && meaningfulSegments.length < 3; i--) {
         const segment = segments[i]
-        
+
         // Skip file extensions and empty segments
         if (!segment || segment.includes('.')) {
           continue
         }
-        
+
         // Skip common folder names
         if (skipSegments.has(segment.toLowerCase())) {
           continue
         }
-        
+
         // Convert to valid key format
         const keySegment = this.generateKey(segment, { maxLength: 12 })
         if (keySegment && keySegment !== 'translationKey') {
           meaningfulSegments.unshift(keySegment)
         }
       }
-      
+
       return meaningfulSegments
     }
     catch (error) {
@@ -160,7 +160,7 @@ export class KeyGenerator {
 
     // Split by dots and validate each segment
     const segments = this.parseNestedKey(key)
-    
+
     if (segments.length === 0) {
       errors.push('Key must contain at least one valid segment')
     }
@@ -200,7 +200,7 @@ export class KeyGenerator {
 
     let counter = 1
     let uniqueKey = `${baseKey}${counter}`
-    
+
     while (existingKeys.has(uniqueKey)) {
       counter++
       uniqueKey = `${baseKey}${counter}`
@@ -218,8 +218,8 @@ export class KeyGenerator {
     // Remove or replace special characters
     if (options.removeSpecialChars) {
       // Replace common separators with spaces
-      normalized = normalized.replace(/[-_\.\/\\]/g, ' ')
-      
+      normalized = normalized.replace(/[-_./\\]/g, ' ')
+
       // Remove other special characters
       normalized = normalized.replace(/[^\w\s]/g, '')
     }
@@ -245,13 +245,14 @@ export class KeyGenerator {
 
     const words = str.split(' ')
     let result = ''
-    
+
     for (const word of words) {
       const testResult = result ? `${result} ${word}` : word
-      
+
       if (testResult.length <= maxLength) {
         result = testResult
-      } else {
+      }
+      else {
         break
       }
     }
@@ -269,11 +270,11 @@ export class KeyGenerator {
    */
   private static applyCaseStyle(str: string, caseStyle: KeyGenerationOptions['caseStyle']): string {
     const words = str.split(' ').filter(word => word.length > 0)
-    
+
     switch (caseStyle) {
       case 'camelCase':
-        return words.map((word, index) => 
-          index === 0 ? word.toLowerCase() : this.capitalizeFirst(word.toLowerCase())
+        return words.map((word, index) =>
+          index === 0 ? word.toLowerCase() : this.capitalizeFirst(word.toLowerCase()),
         ).join('')
 
       case 'PascalCase':
@@ -294,7 +295,8 @@ export class KeyGenerator {
    * Capitalizes the first letter of a string
    */
   private static capitalizeFirst(str: string): string {
-    if (str.length === 0) return str
+    if (str.length === 0)
+      return str
     return str.charAt(0).toUpperCase() + str.slice(1)
   }
 
@@ -304,11 +306,11 @@ export class KeyGenerator {
   private static ensureValidIdentifier(key: string): string {
     // Must start with letter or underscore
     if (key.length > 0 && /^\d/.test(key)) {
-      key = '_' + key
+      key = `_${key}`
     }
 
     // Replace any remaining invalid characters
-    key = key.replace(/[^\w]/g, '_')
+    key = key.replace(/\W/g, '_')
 
     // Ensure it's not empty
     if (key.length === 0) {
@@ -322,7 +324,7 @@ export class KeyGenerator {
    * Checks if the value appears to be a question
    */
   private static isQuestion(value: string): boolean {
-    return value.includes('?') || /^(what|how|when|where|why|who|which|can|could|would|should|do|does|did|is|are|was|were)/i.test(value.trim())
+    return value.includes('?') || /^(what|how|when|where|why|who|which|can|could|would|should|does|did|is|are|was|were)/i.test(value.trim())
   }
 
   /**
@@ -363,7 +365,7 @@ export class KeyGenerator {
     }
 
     // Check if valid identifier
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+    if (!/^[a-z_]\w*$/i.test(key)) {
       errors.push('Key must be a valid identifier (letters, numbers, underscore, starting with letter or underscore)')
     }
 

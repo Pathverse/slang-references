@@ -1,20 +1,23 @@
-import {
-  CodeAction,
+import type {
   CodeActionContext,
-  CodeActionKind,
   CodeActionProvider,
-  commands,
-  languages,
   Range,
   Selection,
   TextDocument,
+} from 'vscode'
+import type { TranslationEntry } from '../utils/translationFileWriter'
+import {
+  CodeAction,
+  CodeActionKind,
+  commands,
+  languages,
   window,
   workspace,
   WorkspaceEdit,
 } from 'vscode'
 import { StringLiteralDetector } from '../detectors/stringLiteralDetector'
 import { KeyGenerator } from '../utils/keyGenerator'
-import { TranslationFileWriter, TranslationEntry } from '../utils/translationFileWriter'
+import { TranslationFileWriter } from '../utils/translationFileWriter'
 
 export class StringToTranslationCodeActionProvider implements CodeActionProvider {
   private stringLiteralDetector: StringLiteralDetector
@@ -51,30 +54,32 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
       for (let i = 0; i < Math.min(keySuggestions.length, 3); i++) {
         const suggestedKey = keySuggestions[i]
         const uniqueKey = KeyGenerator.generateUniqueKey(suggestedKey, existingKeys)
-        
+
         let actionTitle: string
         if (i === 0) {
           actionTitle = `Convert to translation: t.${uniqueKey}`
-        } else if (i === 1 && suggestedKey.includes('.')) {
+        }
+        else if (i === 1 && suggestedKey.includes('.')) {
           actionTitle = `Convert to nested translation: t.${uniqueKey}`
-        } else {
+        }
+        else {
           actionTitle = `Convert to translation: t.${uniqueKey}`
         }
-        
+
         const action = new CodeAction(
           actionTitle,
           CodeActionKind.RefactorRewrite,
         )
-        
+
         // Use command instead of workspace edit to ensure only selected action executes
         action.command = {
           command: 'slangReferences.convertToTranslation',
           title: actionTitle,
           arguments: [document.uri, detection, uniqueKey, detection.value],
         }
-        
+
         action.isPreferred = i === 0 // First suggestion is preferred
-        
+
         actions.push(action)
       }
 
@@ -83,13 +88,13 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
         'Convert to translation with custom key...',
         CodeActionKind.RefactorRewrite,
       )
-      
+
       customAction.command = {
         command: 'slangReferences.convertToTranslationWithCustomKey',
         title: 'Convert to translation with custom key',
         arguments: [document.uri, detection],
       }
-      
+
       actions.push(customAction)
 
       return actions
@@ -127,7 +132,7 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
           'Yes',
           'No',
         )
-        
+
         if (overwrite !== 'Yes') {
           return
         }
@@ -152,8 +157,8 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
     value: string,
   ): Promise<void> {
     try {
-      console.log('[String to Translation] Starting conversion:', { key, value })
-      
+      // console.log('[String to Translation] Starting conversion:', { key, value })
+
       // First, add the translation to the file
       const translationEntry: TranslationEntry = {
         key,
@@ -161,7 +166,7 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
       }
 
       const writeResult = await this.translationWriter.addTranslation(translationEntry, documentUri)
-      
+
       if (!writeResult.success) {
         window.showErrorMessage(`Failed to add translation: ${writeResult.error}`)
         return
@@ -170,14 +175,15 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
       // Then, replace the string literal in the code
       const edit = new WorkspaceEdit()
       edit.replace(documentUri, detection.range, `t.${key}`)
-      
+
       const success = await workspace.applyEdit(edit)
-      
+
       if (success) {
         // Show success message
         await this.translationWriter.showSuccessMessage(writeResult)
-        console.log('[String to Translation] Conversion completed successfully')
-      } else {
+        // console.log('[String to Translation] Conversion completed successfully')
+      }
+      else {
         window.showErrorMessage('Failed to update the code')
       }
     }
@@ -193,7 +199,7 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
  */
 export function registerStringToTranslationProvider(): void {
   const provider = new StringToTranslationCodeActionProvider()
-  
+
   // Register the code action provider for Dart files
   languages.registerCodeActionsProvider(
     { scheme: 'file', language: 'dart' },
@@ -206,10 +212,10 @@ export function registerStringToTranslationProvider(): void {
   // Register commands for conversions
   commands.registerCommand(
     'slangReferences.convertToTranslation',
-    (documentUri: any, detection: any, key: string, value: string) => 
+    (documentUri: any, detection: any, key: string, value: string) =>
       provider.applyConversion(documentUri, detection, key, value),
   )
-  
+
   commands.registerCommand(
     'slangReferences.convertToTranslationWithCustomKey',
     (documentUri: any, detection: any) => provider.convertToTranslationWithCustomKey(documentUri, detection),

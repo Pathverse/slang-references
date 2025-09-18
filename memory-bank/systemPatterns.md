@@ -30,10 +30,10 @@ Content Display
 ```typescript
 interface TranslationResolver {
   // Primary: Direct code comment extraction
-  extractFromComments(variable: string): string | null
-  
+  extractFromComments: (variable: string) => string | null
+
   // Secondary: Configuration-based lookup
-  resolveFromConfig(variable: string): string | null
+  resolveFromConfig: (variable: string) => string | null
 }
 ```
 
@@ -47,8 +47,8 @@ interface TranslationResolver {
 ### Strategy Pattern
 ```typescript
 enum ResolutionStrategy {
-  DIRECT_COMMENTS,    // Parse /// en: 'string' comments
-  CONFIG_BASED        // Use slang.yml + JSON files
+  DIRECT_COMMENTS, // Parse /// en: 'string' comments
+  CONFIG_BASED // Use slang.yml + JSON files
 }
 ```
 
@@ -85,13 +85,15 @@ String get contactAndFeedback => 'Contact & Feedback';
 ```
 
 ### Secondary Path: Configuration Resolution
-```typescript
-// Parse slang.yml:
+```yaml
+# Parse slang.yml:
 base_locale: en
 input_directory: i18n
 input_file_pattern: .json
+```
 
-// Then read i18n/en.json:
+Then read i18n/en.json:
+```json
 {
   "contactAndFeedback": "Contact & Feedback"
 }

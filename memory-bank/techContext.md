@@ -17,9 +17,9 @@
 ### Dependencies
 ```json
 {
-  "reactive-vscode": "^0.2.10",  // Extension framework
-  "@types/vscode": "^1.97.0",    // VS Code API types
-  "typescript": "^5.7.3"         // TypeScript compiler
+  "reactive-vscode": "^0.2.10", // Extension framework
+  "@types/vscode": "^1.97.0", // VS Code API types
+  "typescript": "^5.7.3" // TypeScript compiler
 }
 ```
 

@@ -101,6 +101,10 @@
     "ext:package": "vsce package --no-dependencies",
     "ext:publish": "vsxpub --no-dependencies"
   },
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^4.1.0"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^4.2.1",
     "@antfu/ni": "^23.3.1",
@@ -119,9 +123,5 @@
     "vitest": "^3.0.5",
     "vscode-ext-gen": "^1.0.0",
     "vsxpub": "^0.1.0"
-  },
-  "dependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "js-yaml": "^4.1.0"
   }
 }

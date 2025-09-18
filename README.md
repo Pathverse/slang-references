@@ -27,7 +27,7 @@ Text(t.helloWorld) // Automatically added to JSON
 
 **Three conversion options:**
 - Simple key: `helloWorld`
-- Nested key: `pages.home.helloWorld` 
+- Nested key: `pages.home.helloWorld`
 - Custom key: User input with dot notation support
 
 ## Installation

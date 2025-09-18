@@ -48,18 +48,18 @@
 
 ### Code Organization
 ```typescript
-src/
-  index.ts              // Extension entry point
-  providers/
-    hoverProvider.ts    // Main hover logic
-  detectors/
-    slangDetector.ts    // Variable detection
-  resolvers/
-    commentResolver.ts  // Comment-based resolution
-    configResolver.ts   // Configuration-based resolution
-  utils/
-    cache.ts           // Caching utilities
-    fileUtils.ts       // File system helpers
+src
+/ index.ts // Extension entry point
+providers
+/ hoverProvider.ts // Main hover logic
+detectors
+/ slangDetector.ts // Variable detection
+resolvers
+/ commentResolver.ts // Comment-based resolution
+configResolver.ts // Configuration-based resolution
+utils
+/ cache.ts // Caching utilities
+fileUtils.ts // File system helpers
 ```
 
 ### Development Principles
