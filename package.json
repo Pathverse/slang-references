@@ -43,7 +43,13 @@
     "onLanguage:dart"
   ],
   "contributes": {
-    "commands": [],
+    "commands": [
+      {
+        "command": "slangReferences.convertToTranslationWithCustomKey",
+        "title": "Convert to Translation with Custom Key",
+        "category": "Slang References"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Slang References",
@@ -57,6 +63,27 @@
           "type": "boolean",
           "default": false,
           "description": "Show additional information in hover tooltips (file path, variable type)"
+        },
+        "slangReferences.stringToTranslation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable string literal to translation conversion feature"
+        },
+        "slangReferences.stringToTranslation.keyMaxLength": {
+          "type": "number",
+          "default": 20,
+          "description": "Maximum length for auto-generated translation keys"
+        },
+        "slangReferences.stringToTranslation.caseStyle": {
+          "type": "string",
+          "enum": ["camelCase", "snake_case", "kebab-case", "PascalCase"],
+          "default": "camelCase",
+          "description": "Case style for generated translation keys"
+        },
+        "slangReferences.stringToTranslation.autoAddImport": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically add translation import when converting strings"
         }
       }
     }
