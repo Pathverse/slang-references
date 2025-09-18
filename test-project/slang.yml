@@ -1,0 +1,13 @@
+base_locale: en
+fallback_strategy: base_locale
+lazy: true
+
+input_directory: i18n
+output_directory: lib/i18n
+input_file_pattern: .json
+
+# Optional settings
+namespace: false
+translate_var: t
+enum_name: AppLocale
+translation_class_visibility: public
