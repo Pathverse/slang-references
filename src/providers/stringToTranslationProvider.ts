@@ -44,26 +44,36 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
       }
 
       // Generate key suggestions
-      const keySuggestions = KeyGenerator.generateKeySuggestions(detection.value)
+      const keySuggestions = KeyGenerator.generateKeySuggestions(detection.value, document.uri.fsPath)
       const existingKeys = await this.translationWriter.getExistingKeys(document.uri)
 
       // Create code actions for each key suggestion
-      for (const suggestedKey of keySuggestions.slice(0, 3)) { // Limit to 3 suggestions
+      for (let i = 0; i < Math.min(keySuggestions.length, 3); i++) {
+        const suggestedKey = keySuggestions[i]
         const uniqueKey = KeyGenerator.generateUniqueKey(suggestedKey, existingKeys)
         
+        let actionTitle: string
+        if (i === 0) {
+          actionTitle = `Convert to translation: t.${uniqueKey}`
+        } else if (i === 1 && suggestedKey.includes('.')) {
+          actionTitle = `Convert to nested translation: t.${uniqueKey}`
+        } else {
+          actionTitle = `Convert to translation: t.${uniqueKey}`
+        }
+        
         const action = new CodeAction(
-          `Convert to translation: t.${uniqueKey}`,
+          actionTitle,
           CodeActionKind.RefactorRewrite,
         )
         
         // Use command instead of workspace edit to ensure only selected action executes
         action.command = {
           command: 'slangReferences.convertToTranslation',
-          title: `Convert to translation: t.${uniqueKey}`,
+          title: actionTitle,
           arguments: [document.uri, detection, uniqueKey, detection.value],
         }
         
-        action.isPreferred = keySuggestions.indexOf(suggestedKey) === 0 // First suggestion is preferred
+        action.isPreferred = i === 0 // First suggestion is preferred
         
         actions.push(action)
       }
@@ -97,10 +107,10 @@ export class StringToTranslationCodeActionProvider implements CodeActionProvider
     try {
       // Show input box for custom key
       const customKey = await window.showInputBox({
-        prompt: 'Enter custom translation key',
+        prompt: 'Enter custom translation key (use dots for nested structure, e.g., "folder.subfolder.key")',
         value: KeyGenerator.generateKey(detection.value),
         validateInput: (value) => {
-          const validation = KeyGenerator.validateKey(value)
+          const validation = KeyGenerator.validateNestedKey(value)
           return validation.isValid ? undefined : validation.errors.join(', ')
         },
       })

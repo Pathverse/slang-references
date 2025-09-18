@@ -219,9 +219,13 @@ export class TranslationFileWriter {
 
       current[keyParts[keyParts.length - 1]] = entry.value
     } else {
-      // Handle nested keys in the key name itself
-      if (entry.key.includes('.')) {
-        const keyParts = entry.key.split('.')
+      // Handle nested keys with dots
+      const keyParts = entry.key.includes('.') 
+        ? entry.key.split('.') 
+        : [entry.key]
+
+      if (keyParts.length > 1) {
+        // Create nested structure
         let current = result
 
         for (let i = 0; i < keyParts.length - 1; i++) {

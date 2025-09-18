@@ -53,40 +53,134 @@ export class KeyGenerator {
   /**
    * Generates multiple key suggestions for a string value
    */
-  static generateKeySuggestions(value: string): string[] {
+  static generateKeySuggestions(value: string, filePath?: string): string[] {
     const suggestions: string[] = []
 
-    // Default camelCase key
+    // First suggestion: Simple rephrased name (as before)
     suggestions.push(this.generateKey(value))
 
-    // Short version (10 chars)
-    suggestions.push(this.generateKey(value, { maxLength: 10 }))
-
-    // Long version (30 chars)
-    suggestions.push(this.generateKey(value, { maxLength: 30 }))
-
-    // snake_case version
-    suggestions.push(this.generateKey(value, { caseStyle: 'snake_case' }))
-
-    // Context-aware suggestions
-    if (this.isQuestion(value)) {
-      suggestions.push(this.generateKey(value, { suffix: 'Question' }))
+    // Second suggestion: Nested structure based on file/folder context
+    if (filePath) {
+      const nestedKey = this.generateNestedKey(value, filePath)
+      if (nestedKey) {
+        suggestions.push(nestedKey)
+      }
     }
 
-    if (this.isError(value)) {
-      suggestions.push(this.generateKey(value, { prefix: 'error' }))
-    }
-
-    if (this.isButton(value)) {
-      suggestions.push(this.generateKey(value, { suffix: 'Button' }))
-    }
-
-    if (this.isTitle(value)) {
-      suggestions.push(this.generateKey(value, { suffix: 'Title' }))
-    }
+    // Third suggestion: Always include a shorter version for custom input
+    suggestions.push(this.generateKey(value, { maxLength: 15 }))
 
     // Remove duplicates and return
     return [...new Set(suggestions)]
+  }
+
+  /**
+   * Generates a nested key based on file path structure
+   */
+  static generateNestedKey(value: string, filePath: string): string {
+    try {
+      // Extract meaningful path segments from the file path
+      const pathSegments = this.extractPathSegments(filePath)
+      
+      if (pathSegments.length === 0) {
+        return this.generateKey(value)
+      }
+
+      // Create nested structure: folder1.folder2.keyName
+      const keyName = this.generateKey(value, { maxLength: 15 })
+      const fullPath = [...pathSegments, keyName].join('.')
+      
+      return fullPath
+    }
+    catch (error) {
+      console.debug('[Key Generator] Error generating nested key:', error)
+      return this.generateKey(value)
+    }
+  }
+
+  /**
+   * Extracts meaningful path segments from a file path
+   */
+  private static extractPathSegments(filePath: string): string[] {
+    try {
+      // Convert to forward slashes and split
+      const normalizedPath = filePath.replace(/\\/g, '/')
+      const segments = normalizedPath.split('/')
+      
+      // Find meaningful segments (skip common ones like lib, src, etc.)
+      const skipSegments = new Set(['lib', 'src', 'app', 'main', 'dart', 'flutter', 'packages', 'node_modules'])
+      const meaningfulSegments: string[] = []
+      
+      // Start from the end and work backwards, but limit to 3 levels
+      for (let i = segments.length - 1; i >= 0 && meaningfulSegments.length < 3; i--) {
+        const segment = segments[i]
+        
+        // Skip file extensions and empty segments
+        if (!segment || segment.includes('.')) {
+          continue
+        }
+        
+        // Skip common folder names
+        if (skipSegments.has(segment.toLowerCase())) {
+          continue
+        }
+        
+        // Convert to valid key format
+        const keySegment = this.generateKey(segment, { maxLength: 12 })
+        if (keySegment && keySegment !== 'translationKey') {
+          meaningfulSegments.unshift(keySegment)
+        }
+      }
+      
+      return meaningfulSegments
+    }
+    catch (error) {
+      console.debug('[Key Generator] Error extracting path segments:', error)
+      return []
+    }
+  }
+
+  /**
+   * Parses a nested key path into segments for JSON structure creation
+   */
+  static parseNestedKey(key: string): string[] {
+    return key.split('.').filter(segment => segment.trim().length > 0)
+  }
+
+  /**
+   * Validates a nested key (allows dots for nesting)
+   */
+  static validateNestedKey(key: string): { isValid: boolean, errors: string[] } {
+    const errors: string[] = []
+
+    // Check if empty
+    if (!key || key.trim().length === 0) {
+      errors.push('Key cannot be empty')
+    }
+
+    // Split by dots and validate each segment
+    const segments = this.parseNestedKey(key)
+    
+    if (segments.length === 0) {
+      errors.push('Key must contain at least one valid segment')
+    }
+
+    for (const segment of segments) {
+      const segmentValidation = this.validateKey(segment)
+      if (!segmentValidation.isValid) {
+        errors.push(`Invalid segment "${segment}": ${segmentValidation.errors.join(', ')}`)
+      }
+    }
+
+    // Check overall length
+    if (key.length > 100) {
+      errors.push('Nested key should be shorter than 100 characters')
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    }
   }
 
   /**
